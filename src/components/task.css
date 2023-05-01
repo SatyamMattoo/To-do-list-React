@@ -1,0 +1,41 @@
+.task
+{
+    margin: 10px;
+    display: flex;
+    align-items: center;
+    color: white;
+    border-radius: 10px;
+    background-color: rgba(116, 6, 241, 0.932);
+}
+
+.output{
+    width: 90%;
+    padding: 10px;
+}
+
+.output p{
+    font-size: 1.3rem;
+    padding: 5px;
+    margin: 5px;
+}
+
+.output span{
+    padding: 5px;
+    font-size: 1.1rem;
+    margin: 5px;
+}
+
+.task button
+{
+   border-radius: 100%;
+   height: 30px;
+   width: 30px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   border: none;
+}
+
+.task button:hover{
+    background-color: crimson;
+}
