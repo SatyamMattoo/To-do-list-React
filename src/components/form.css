@@ -58,3 +58,11 @@ button:hover{
   cursor: pointer;
   background-color: rgba(0, 0, 0, 0.87);
 }
+
+.login{
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+

@@ -1,22 +1,67 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
 import Task from "./Task";
+import { signOut, onAuthStateChanged, getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
+import { app } from "./firebase.js";
+import { getFirestore, addDoc, serverTimestamp, collection, onSnapshot, query, orderBy } from "firebase/firestore"
+
+
+const auth = getAuth(app);
+const db = getFirestore(app);
+const logOut = () => signOut(auth);
+
+const loginGoogle = () => {
+  const providerGoogle = new GoogleAuthProvider();
+  signInWithPopup(auth, providerGoogle);
+}
 
 function Form() {
-    const initialTasks = localStorage.getItem("tasks") ? JSON.parse(localStorage.getItem("tasks")) : [];
-  const [tasks, setTasks] = useState(initialTasks);
+
+  const [user, setUser] = useState(false);
+  const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    setTasks([...tasks, { title, description }]);
-    setTitle("");
-    setDescription("");
+
+    try {
+      setTasks([...tasks, { title, description }]);
+      setTitle("");
+      setDescription("");
+      await addDoc(collection(db, "tasks"), {
+        text: message,
+        uid: user.uid,
+        uri: user.photoURL,
+        createdAt: serverTimestamp()
+      })
+
+      scroll.current.scrollIntoView({ behaviour: "smooth" })
+    } catch (error) {
+      alert(error);
+    }
   };
 
   useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    const q = query(collection(db, "tasks"), orderBy("createdAt", "asc"));
+    const unsubscribe = onAuthStateChanged(auth, (data) => {
+      setUser(data);
+    });
+
+    const unsubscribeFortasks = onSnapshot(q, (snap) => {
+
+      settasks(snap.docs.map((item) => {
+        const id = item.id;
+        return { id, ...item.data() };
+      }
+      ));
+
+    })
+
+    return () => {
+      unsubscribe();
+      unsubscribeFortasks();
+    }
   }, [tasks]);
 
   const deleteTask = (index) => {
@@ -27,7 +72,10 @@ function Form() {
   };
 
   return (
-    <div className="container">
+<>
+    {
+      (user) ?  
+      <div className="container">
       <h1>Daily Goals</h1>
       <form className="input" onSubmit={submitHandler}>
         <input
@@ -46,15 +94,24 @@ function Form() {
         <button type="submit">ADD</button>
       </form>
       {tasks.map((item, index) => (
-        <Task
-          key={index}
-          title={item.title}
-          description={item.description}
-          deleteTask2={deleteTask}
-          index={index}
-        />
-      ))}
-    </div>
+          <Task
+            key={index}
+            title={item.title}
+            description={item.description}
+            deleteTask2={deleteTask}
+            index={index}
+            />
+            ))
+          }
+        </div>
+      :
+      <div className="login">
+        <button>
+          Sign in with Google
+        </button>
+      </div>
+      }
+      </>
   );
 }
 
