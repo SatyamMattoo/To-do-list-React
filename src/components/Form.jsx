@@ -3,7 +3,7 @@ import { useState } from "react";
 import Task from "./Task";
 import { signOut, onAuthStateChanged, getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 import { app } from "./firebase.js";
-import { getFirestore, addDoc, serverTimestamp, collection, onSnapshot, query, orderBy } from "firebase/firestore"
+import { getFirestore, addDoc, serverTimestamp, collection, onSnapshot, doc,deleteDoc, Firestore} from "firebase/firestore"
 
 
 const auth = getAuth(app);
@@ -26,57 +26,56 @@ function Form() {
     e.preventDefault();
 
     try {
-      setTasks([...tasks, { title, description }]);
       setTitle("");
       setDescription("");
       await addDoc(collection(db, "tasks"), {
-        text: message,
+        heading: title,
+        des: description,
         uid: user.uid,
-        uri: user.photoURL,
         createdAt: serverTimestamp()
       })
 
-      scroll.current.scrollIntoView({ behaviour: "smooth" })
     } catch (error) {
       alert(error);
     }
   };
 
   useEffect(() => {
-    const q = query(collection(db, "tasks"), orderBy("createdAt", "asc"));
     const unsubscribe = onAuthStateChanged(auth, (data) => {
       setUser(data);
     });
 
-    const unsubscribeFortasks = onSnapshot(q, (snap) => {
+    const unsubscribeFortasks = onSnapshot(collection(db, "tasks"), (snap) => {
 
-      settasks(snap.docs.map((item) => {
+      setTasks(snap.docs.map((item) => {
         const id = item.id;
         return { id, ...item.data() };
       }
       ));
 
     })
-
     return () => {
       unsubscribe();
       unsubscribeFortasks();
     }
   }, [tasks]);
 
-  const deleteTask = (index) => {
-    const filteredArray = tasks.filter((val, i) => {
-      return i !== index;
-    });
-    setTasks(filteredArray);
+  const deleteTask = async() => {
+    console.log(tasks.id)
+  await deleteDoc(doc(db,"tasks",tasks.docId));
   };
+
 
   return (
 <>
     {
       (user) ?  
       <div className="container">
+      <div className="header">
+      <img src={user.photoURL} referrerPolicy="no-referrer" alt="user profile" />
       <h1>Daily Goals</h1>
+      <button onClick={logOut}>Log Out</button>
+      </div>
       <form className="input" onSubmit={submitHandler}>
         <input
           type="text" 
@@ -96,9 +95,9 @@ function Form() {
       {tasks.map((item, index) => (
           <Task
             key={index}
-            title={item.title}
-            description={item.description}
-            deleteTask2={deleteTask}
+            title={item.heading}
+            description={item.des}
+            deleteTask={deleteTask}
             index={index}
             />
             ))
@@ -106,7 +105,7 @@ function Form() {
         </div>
       :
       <div className="login">
-        <button>
+        <button onClick={loginGoogle}>
           Sign in with Google
         </button>
       </div>
