@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Task({completed,title, description, deleteTask, index,id}) {
+function Task({completed,title, description, deleteTask,id}) {
   return (
     (!completed)?
     <div className="task">

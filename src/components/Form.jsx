@@ -3,7 +3,7 @@ import { useState } from "react";
 import Task from "./Task";
 import { app } from "./firebase.js";
 import { signOut, onAuthStateChanged, getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
-import { getFirestore, addDoc, serverTimestamp, collection, onSnapshot, deleteDoc, doc} from "firebase/firestore"
+import { getFirestore, addDoc, serverTimestamp, collection, onSnapshot, deleteDoc, doc, query, orderBy} from "firebase/firestore"
 
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -45,7 +45,9 @@ function Form() {
       setUser(data);
     });
 
-    const unsubscribeFortasks = onSnapshot(collection(db, "tasks"), (snap) => {
+    const q= query(collection(db,"tasks"),orderBy("createdAt","desc"));
+
+    const unsubscribeFortasks = onSnapshot(q, (snap) => {
 
       setTasks(snap.docs.map((item) => {
         const id = item.id;
@@ -98,7 +100,6 @@ const deleteTask = async(id) => {
             title={item.heading}
             description={item.des}
             deleteTask={deleteTask}
-            index={index}
             id={item.id}
             />
             ))
