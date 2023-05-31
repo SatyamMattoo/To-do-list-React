@@ -1,10 +1,9 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
 import Task from "./Task";
-import { signOut, onAuthStateChanged, getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 import { app } from "./firebase.js";
-import { getFirestore, addDoc, serverTimestamp, collection, onSnapshot, doc,deleteDoc, Firestore} from "firebase/firestore"
-
+import { signOut, onAuthStateChanged, getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
+import { getFirestore, addDoc, serverTimestamp, collection, onSnapshot, deleteDoc, doc} from "firebase/firestore"
 
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -29,6 +28,7 @@ function Form() {
       setTitle("");
       setDescription("");
       await addDoc(collection(db, "tasks"), {
+        completed: false,
         heading: title,
         des: description,
         uid: user.uid,
@@ -60,10 +60,9 @@ function Form() {
     }
   }, [tasks]);
 
-  const deleteTask = async() => {
-    console.log(tasks.id)
-  await deleteDoc(doc(db,"tasks",tasks.docId));
-  };
+const deleteTask = async(id) => {
+  await deleteDoc (doc(db, "tasks", id));
+};
 
 
   return (
@@ -95,10 +94,12 @@ function Form() {
       {tasks.map((item, index) => (
           <Task
             key={index}
+            completed={item.completed}
             title={item.heading}
             description={item.des}
             deleteTask={deleteTask}
             index={index}
+            id={item.id}
             />
             ))
           }
